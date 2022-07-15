@@ -1,3 +1,7 @@
+use clap::Parser;
+use search_blame::Cli;
+use search_blame::search;
 fn main() {
-    println!("Search blame is an ambitious project");
+    let cli = Cli::parse();
+    search(cli.text, cli.files);
 }
