@@ -1,6 +1,6 @@
 pub use self::{
     cli::Cli,
-    search::{FileResult, SearchResult, search},
+    search::{search, FileResult, SearchResult},
 };
 mod cli;
 mod search;
