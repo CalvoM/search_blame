@@ -7,6 +7,7 @@ use walkdir::WalkDir;
 pub struct FileResult {
     pub phrase: String,
     pub line: u64,
+    pub filepath: String,
 }
 
 #[derive(Debug)]
@@ -41,9 +42,11 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
             dent.path(),
             UTF8(|lnum, line| {
                 let ln = &lnum;
+                let filepath = dent.file_name().to_str().unwrap();
                 files.push(FileResult {
                     phrase: String::from(line),
                     line: *ln,
+                    filepath: String::from(filepath),
                 });
                 Ok(true)
             }),

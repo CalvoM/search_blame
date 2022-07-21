@@ -6,6 +6,6 @@ fn main() {
     let res = search(cli.text, cli.files);
     let files = res.files;
     for file in files {
-        println!("{}: {}", file.line, file.phrase);
+        println!("{}/{}: {}", file.filepath, file.line, file.phrase);
     }
 }
