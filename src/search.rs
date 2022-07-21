@@ -1,5 +1,7 @@
 use grep::regex::RegexMatcher;
-use grep::searcher::{sinks::UTF8, Searcher};
+use grep::searcher::BinaryDetection;
+use grep::searcher::{sinks::Lossy, SearcherBuilder};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
@@ -24,7 +26,23 @@ impl SearchResult {
 pub fn search(text: String, path: PathBuf) -> SearchResult {
     let mut search_result = SearchResult { files: Vec::new() };
     let matcher = RegexMatcher::new_line_matcher(&text).unwrap();
-    let mut searcher = Searcher::new();
+    let mut searcher = SearcherBuilder::new()
+        .binary_detection(BinaryDetection::quit(b'\x00'))
+        .build();
+    let pb = ProgressBar::new_spinner();
+    pb.enable_steady_tick(10);
+    pb.set_style(
+        ProgressStyle::default_spinner()
+            .tick_strings(&[
+                "▰▱▱▱▱▱▱",
+                "▰▰▱▱▱▱▱",
+                "▰▰▰▱▱▱▱",
+                "▰▰▰▰▱▱▱",
+                "▰▰▰▰▰▱▱",
+                "▰▰▰▰▰▰▱",
+                "▰▰▰▰▰▰▰",
+            ]),
+    );
     for file in WalkDir::new(path) {
         let dent = match file {
             Ok(dent) => dent,
@@ -40,13 +58,14 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         let result = searcher.search_path(
             &matcher,
             dent.path(),
-            UTF8(|lnum, line| {
+            Lossy(|lnum, line| {
                 let ln = &lnum;
-                let filepath = dent.file_name().to_str().unwrap();
+                let filepath = dent.path().to_str().unwrap().to_string();
+                println!("{}", dent.path().display());
                 files.push(FileResult {
                     phrase: String::from(line),
                     line: *ln,
-                    filepath: String::from(filepath),
+                    filepath: filepath,
                 });
                 Ok(true)
             }),
@@ -57,6 +76,8 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         for file in files {
             search_result.add_file(file)
         }
+        pb.inc(1);
     }
+    pb.finish_with_message("Done searching");
     search_result
 }

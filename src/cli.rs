@@ -13,4 +13,6 @@ pub struct Cli {
     pub text: String,
     #[clap(long, value_parser)]
     pub blame: Option<String>,
+    #[clap(long, value_parser)]
+    pub root: Option<PathBuf>,
 }
