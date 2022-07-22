@@ -5,6 +5,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
+//TODO: Need better data struture to save the results e.g file_name->[lines]
 #[derive(Debug)]
 pub struct FileResult {
     pub phrase: String,
@@ -30,19 +31,16 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         .binary_detection(BinaryDetection::quit(b'\x00'))
         .build();
     let pb = ProgressBar::new_spinner();
-    pb.enable_steady_tick(10);
-    pb.set_style(
-        ProgressStyle::default_spinner()
-            .tick_strings(&[
-                "▰▱▱▱▱▱▱",
-                "▰▰▱▱▱▱▱",
-                "▰▰▰▱▱▱▱",
-                "▰▰▰▰▱▱▱",
-                "▰▰▰▰▰▱▱",
-                "▰▰▰▰▰▰▱",
-                "▰▰▰▰▰▰▰",
-            ]),
-    );
+    pb.enable_steady_tick(100);
+    pb.set_style(ProgressStyle::default_spinner().tick_strings(&[
+        "▰▱▱▱▱▱▱",
+        "▰▰▱▱▱▱▱",
+        "▰▰▰▱▱▱▱",
+        "▰▰▰▰▱▱▱",
+        "▰▰▰▰▰▱▱",
+        "▰▰▰▰▰▰▱",
+        "▰▰▰▰▰▰▰",
+    ]));
     for file in WalkDir::new(path) {
         let dent = match file {
             Ok(dent) => dent,
@@ -61,7 +59,6 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
             Lossy(|lnum, line| {
                 let ln = &lnum;
                 let filepath = dent.path().to_str().unwrap().to_string();
-                println!("{}", dent.path().display());
                 files.push(FileResult {
                     phrase: String::from(line),
                     line: *ln,
@@ -76,7 +73,6 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         for file in files {
             search_result.add_file(file)
         }
-        pb.inc(1);
     }
     pb.finish_with_message("Done searching");
     search_result
