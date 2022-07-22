@@ -17,7 +17,7 @@ pub fn blame(
     user_to_blame: Option<String>,
     files: &mut Vec<FileResult>,
 ) -> Vec<BlameFileResult> {
-    let root_dir = repo.workdir().clone().unwrap();
+    let root_dir = repo.workdir().unwrap().clone().canonicalize().unwrap();
     let info = repo.signature().unwrap();
     let user = match user_to_blame {
         Some(user) => user,
@@ -43,7 +43,7 @@ pub fn blame(
         let mut opts = git2::BlameOptions::new();
         let mut file_path = Path::new(file.filepath.as_str());
         if file_path.is_absolute() {
-            file_path = file_path.strip_prefix(root_dir).unwrap();
+            file_path = file_path.strip_prefix(root_dir.as_path()).unwrap();
         }
         if current_file.file.len() > 0 && current_file.file != file_path.to_str().unwrap() {
             if current_file.line_numbers.len() > 0 {
@@ -54,7 +54,7 @@ pub fn blame(
         current_file.file = String::from(file_path.clone().to_str().unwrap());
         let blame_res = match repo.blame_file(file_path, Some(&mut opts)) {
             Ok(blame_res) => blame_res,
-            Err(e) => panic!("Failed to open: {}", e),
+            Err(e) => panic!("Failed to open: ({})", e),
         };
         for i in 0..blame_res.len() {
             let chunk = blame_res.get_index(i).unwrap();

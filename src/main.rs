@@ -8,7 +8,7 @@ fn main() {
     let cli = Cli::parse();
     // get git root: if root is not provided then files is git root
     let git_root = match cli.root {
-        Some(root) => root,
+        Some(root) => root.canonicalize().unwrap(),
         None => cli.files.clone(),
     };
     let mut files = cli.files.clone();
