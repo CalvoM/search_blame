@@ -19,8 +19,7 @@ fn main() {
         Ok(repo) => repo,
         Err(_) => panic!("Could not open the repository"),
     };
-    let res = search(cli.text, files);
-    let mut files = res.files;
+    let mut files = search(cli.text, files);
     if files.len() == 0 {
         println!("{}", style("Text no found in the path").red());
         process::exit(1);

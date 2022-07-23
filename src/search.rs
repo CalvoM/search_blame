@@ -13,19 +13,17 @@ pub struct FileResult {
     pub filepath: String,
 }
 
-#[derive(Debug)]
+pub struct FileFinding {
+    pub phrase: String,
+    pub line: u64,
+}
+
 pub struct SearchResult {
-    pub files: Vec<FileResult>,
+    pub filepath: String,
+    pub findings: Vec<FileFinding>,
 }
 
-impl SearchResult {
-    fn add_file(&mut self, file: FileResult) {
-        self.files.push(file)
-    }
-}
-
-pub fn search(text: String, path: PathBuf) -> SearchResult {
-    let mut search_result = SearchResult { files: Vec::new() };
+pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
     let matcher = RegexMatcher::new_line_matcher(&text).unwrap();
     let mut searcher = SearcherBuilder::new()
         .binary_detection(BinaryDetection::quit(b'\x00'))
@@ -41,6 +39,7 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         "▰▰▰▰▰▰▱",
         "▰▰▰▰▰▰▰",
     ]));
+    let mut search_result: Vec<SearchResult> = vec![];
     for file in WalkDir::new(path) {
         let dent = match file {
             Ok(dent) => dent,
@@ -52,17 +51,19 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         if !dent.file_type().is_file() {
             continue;
         }
-        let mut files: Vec<FileResult> = vec![];
+        let mut finding: SearchResult = SearchResult {
+            filepath: String::from(""),
+            findings: vec![],
+        };
+        finding.filepath = dent.path().clone().to_str().unwrap().to_string();
         let result = searcher.search_path(
             &matcher,
             dent.path(),
             Lossy(|lnum, line| {
                 let ln = &lnum;
-                let filepath = dent.path().to_str().unwrap().to_string();
-                files.push(FileResult {
-                    phrase: String::from(line),
+                finding.findings.push(FileFinding {
                     line: *ln,
-                    filepath: filepath,
+                    phrase: String::from(line),
                 });
                 Ok(true)
             }),
@@ -70,8 +71,8 @@ pub fn search(text: String, path: PathBuf) -> SearchResult {
         if let Err(err) = result {
             eprintln!("{}: {}", dent.path().display(), err);
         }
-        for file in files {
-            search_result.add_file(file)
+        if finding.findings.len() > 0 {
+            search_result.push(finding);
         }
     }
     pb.finish_with_message("Done searching");

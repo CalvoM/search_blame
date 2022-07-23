@@ -1,4 +1,4 @@
-use crate::FileResult;
+use crate::SearchResult;
 use git2::Repository;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
@@ -15,7 +15,7 @@ impl BlameFileResult {
 pub fn blame(
     repo: Repository,
     user_to_blame: Option<String>,
-    files: &mut Vec<FileResult>,
+    files: &mut Vec<SearchResult>,
 ) -> Vec<BlameFileResult> {
     let root_dir = repo.workdir().unwrap().clone().canonicalize().unwrap();
     let info = repo.signature().unwrap();
@@ -62,10 +62,12 @@ pub fn blame(
             if user == info.name().unwrap() {
                 let chunk_end = chunk.final_start_line() + chunk.lines_in_hunk() - 1;
                 let chunk_start = chunk.final_start_line();
-                if chunk_start <= file.line as usize && file.line as usize <= chunk_end {
-                    current_file.add_line_number(file.line as usize);
-                } else {
-                    continue;
+                for (_, f) in file.findings.iter().enumerate() {
+                    if chunk_start <= f.line as usize && f.line as usize <= chunk_end {
+                        current_file.add_line_number(f.line as usize);
+                    } else {
+                        continue;
+                    }
                 }
             }
         }
