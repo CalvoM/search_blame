@@ -7,7 +7,7 @@ description = "A cli tool that provides search results in a git repo using the a
 license = "MIT"
 repository = "https://github.com/CalvoM/search_blame"
 keywords = ["cli", "search", "blame", "author"]
-readme = "README"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
