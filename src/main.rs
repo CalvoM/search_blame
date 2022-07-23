@@ -1,7 +1,7 @@
 use std::process;
 
 use clap::Parser;
-use console::style;
+use console::{style, Emoji};
 use git2::Repository;
 use search_blame::{blame, search, Cli};
 fn main() {
@@ -28,7 +28,7 @@ fn main() {
     for file in final_res {
         println!("In the file: {}", file.file);
         for line in file.line_numbers {
-            print!("\t{}", line);
+            print!("{} {}\t", Emoji("✅", "=>"), line);
         }
         println!("")
     }
