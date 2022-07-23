@@ -10,5 +10,4 @@ grep = "0.2"
 git2 = "0.14"
 clap = { version = "3.2.12", features = ["derive"] }
 walkdir = "2.3.2"
-console = "0.15.0"
-indicatif = "0.16.2"
+termcolor = "1.1.3"
