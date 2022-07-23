@@ -1,5 +1,5 @@
 use crate::SearchResult;
-use git2::Repository;
+use git2::{ErrorCode, Repository};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
 #[derive(Clone)]
@@ -54,7 +54,10 @@ pub fn blame(
         current_file.file = String::from(file_path.clone().to_str().unwrap());
         let blame_res = match repo.blame_file(file_path, Some(&mut opts)) {
             Ok(blame_res) => blame_res,
-            Err(e) => panic!("Failed to open: ({})", e),
+            Err(e) => match e.code() {
+                ErrorCode::NotFound => continue, // if file not tracked by git
+                _ => panic!("{}", e),
+            },
         };
         for i in 0..blame_res.len() {
             let chunk = blame_res.get_index(i).unwrap();
