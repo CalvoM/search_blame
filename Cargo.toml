@@ -1,7 +1,13 @@
 [package]
 name = "search_blame"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
+authors = ["Calvin Mwadime <mwadimemakokha@gmail.com>"]
+description = "A cli tool that provides search results in a git repo using the author as a search key"
+license = "MIT"
+repository = "https://github.com/CalvoM/search_blame"
+keywords = ["cli", "search", "blame", "author"]
+readme = "README"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
