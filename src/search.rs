@@ -13,11 +13,13 @@ pub struct FileResult {
     pub filepath: String,
 }
 
+#[derive(Debug)]
 pub struct FileFinding {
     pub phrase: String,
     pub line: u64,
 }
 
+#[derive(Debug)]
 pub struct SearchResult {
     pub filepath: String,
     pub findings: Vec<FileFinding>,
@@ -55,7 +57,7 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
             filepath: String::from(""),
             findings: vec![],
         };
-        finding.filepath = dent.path().clone().to_str().unwrap().to_string();
+        finding.filepath = dent.path().to_str().unwrap().to_string();
         let result = searcher.search_path(
             &matcher,
             dent.path(),
@@ -71,7 +73,7 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
         if let Err(err) = result {
             eprintln!("{}: {}", dent.path().display(), err);
         }
-        if finding.findings.len() > 0 {
+        if !finding.findings.is_empty() {
             search_result.push(finding);
         }
     }

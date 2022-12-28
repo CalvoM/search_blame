@@ -18,3 +18,9 @@ clap = { version = "3.2.12", features = ["derive"] }
 walkdir = "2.3.2"
 console = "0.15.0"
 indicatif = "0.16.2"
+
+[dev-dependencies]
+assert_cmd = "2.0.4"
+predicates = "2.1.1"
+assert_fs = "1.0.7"
+rstest = "0.15.0"
