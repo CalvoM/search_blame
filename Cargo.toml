@@ -24,3 +24,11 @@ assert_cmd = "2.0.4"
 predicates = "2.1.1"
 assert_fs = "1.0.7"
 rstest = "0.15.0"
+
+[lib]
+name = "search_blame"
+path = "src/lib.rs"
+
+[[bin]]
+name = "search_blame"
+path = "src/bin.rs"
