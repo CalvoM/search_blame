@@ -2,16 +2,24 @@ use crate::SearchResult;
 use git2::{ErrorCode, Repository};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
+
+/// A structure holding git blame results
 #[derive(Clone)]
 pub struct BlameFileResult {
+    /// The file name with the git blame result
     pub file: String,
+    /// The number of the line in the file containing the git blame result
     pub line_numbers: Vec<usize>,
 }
 impl BlameFileResult {
+    /// Adds new line number of the git blame result in the `file`
     pub fn add_line_number(&mut self, line_number: usize) {
         self.line_numbers.push(line_number);
     }
 }
+
+/// Gets the git blame results of the words and location in the `files`
+/// Returns List of `BlameFileResult` committed with the `user_to_blame`
 pub fn blame(
     repo: &Repository,
     user_to_blame: Option<String>,

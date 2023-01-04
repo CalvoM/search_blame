@@ -5,24 +5,67 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-//TODO: Need better data struture to save the results e.g file_name->[lines]
-#[derive(Debug)]
-pub struct FileResult {
-    pub phrase: String,
-    pub line: u64,
-    pub filepath: String,
-}
-
+///A structure containing the file details with the search results.
 #[derive(Debug)]
 pub struct FileFinding {
+    /// The text being searched
     pub phrase: String,
+    /// The line number
     pub line: u64,
 }
 
+/// A structure holding the results of the search operation.
 #[derive(Debug)]
 pub struct SearchResult {
+    /// The relative path to the file
     pub filepath: String,
+    /// List of the text search results in the file at `filepath`
     pub findings: Vec<FileFinding>,
+}
+
+pub trait ProgressRenderer {
+    fn start(&mut self);
+    fn end(&mut self);
+}
+
+struct TuiProgressBar {
+    pb: ProgressBar,
+}
+
+impl ProgressRenderer for TuiProgressBar {
+    fn start(&mut self) {
+        self.pb.enable_steady_tick(100);
+        self.pb
+            .set_style(ProgressStyle::default_spinner().tick_strings(&[
+                "▰▱▱▱▱▱▱",
+                "▰▰▱▱▱▱▱",
+                "▰▰▰▱▱▱▱",
+                "▰▰▰▰▱▱▱",
+                "▰▰▰▰▰▱▱",
+                "▰▰▰▰▰▰▱",
+                "▰▰▰▰▰▰▰",
+            ]));
+    }
+    fn end(&mut self) {
+        self.pb.finish_with_message("Done searching");
+    }
+}
+
+pub fn search_with_ui(
+    text: String,
+    path: PathBuf,
+    renderer: Option<impl ProgressRenderer>,
+) -> Vec<SearchResult> {
+    if renderer.is_none() {
+        let renderer = Some(TuiProgressBar {
+            pb: ProgressBar::new_spinner(),
+        });
+    }
+    let mut renderer = renderer.unwrap();
+    renderer.start();
+    let search_results = search(text, path);
+    renderer.end();
+    search_results
 }
 
 pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
@@ -30,17 +73,6 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
     let mut searcher = SearcherBuilder::new()
         .binary_detection(BinaryDetection::quit(b'\x00'))
         .build();
-    let pb = ProgressBar::new_spinner();
-    pb.enable_steady_tick(100);
-    pb.set_style(ProgressStyle::default_spinner().tick_strings(&[
-        "▰▱▱▱▱▱▱",
-        "▰▰▱▱▱▱▱",
-        "▰▰▰▱▱▱▱",
-        "▰▰▰▰▱▱▱",
-        "▰▰▰▰▰▱▱",
-        "▰▰▰▰▰▰▱",
-        "▰▰▰▰▰▰▰",
-    ]));
     let mut search_result: Vec<SearchResult> = vec![];
     for file in WalkDir::new(path) {
         let dent = match file {
@@ -77,6 +109,5 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
             search_result.push(finding);
         }
     }
-    pb.finish_with_message("Done searching");
     search_result
 }

@@ -4,7 +4,7 @@ use git2::{ObjectType, Repository, Signature};
 // use predicates::prelude::*;
 use assert_fs::fixture::TempDir;
 use rstest::*;
-use search_blame::{blame, search};
+use search_blame::{blame, search, search_with_ui, ProgressRenderer};
 use std::path::Path;
 use std::process::Command;
 use std::{fs, path::PathBuf};
@@ -152,7 +152,11 @@ fn search_text_staged(setup_files: &PathBuf) {
     let path = setup_files;
     let search_res = search(String::from("main"), path.clone());
     assert_eq!(search_res.len(), 4);
-    let search_res = search(String::from("#include"), path.clone());
+    let search_res = search_with_ui(
+        String::from("#include"),
+        path.clone(),
+        None::<impl ProgressRenderer>,
+    );
     assert_eq!(search_res.len(), 1);
 }
 #[rstest]
