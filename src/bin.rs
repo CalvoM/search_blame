@@ -3,7 +3,7 @@ use std::process;
 use clap::Parser;
 use console::{style, Emoji};
 use git2::Repository;
-use search_blame::{blame, search, Cli};
+use search_blame::{blame, search_with_ui, Cli};
 fn main() {
     let cli = Cli::parse();
     // get git root: if root is not provided then files is git root
@@ -19,7 +19,7 @@ fn main() {
         Ok(repo) => repo,
         Err(_) => panic!("Could not open the repository"),
     };
-    let mut files = search(cli.text, files);
+    let mut files = search_with_ui(cli.text, files);
     if files.is_empty() {
         println!("{}", style("Text not found in the path").red());
         process::exit(1);

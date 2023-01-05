@@ -5,42 +5,84 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-//TODO: Need better data struture to save the results e.g file_name->[lines]
-#[derive(Debug)]
-pub struct FileResult {
-    pub phrase: String,
-    pub line: u64,
-    pub filepath: String,
-}
-
+/// A structure holding a single finding result of the search phrases in a file.
 #[derive(Debug)]
 pub struct FileFinding {
+    /// The text being search for
     pub phrase: String,
+    /// The line number in the file with the `phrase`
     pub line: u64,
 }
 
+/// Holds a file's results after the search process finds the `phrase` being searched for.
 #[derive(Debug)]
 pub struct SearchResult {
+    /// Path to the file
+    /// The path is relative to the git root directory
     pub filepath: String,
+    /// List of the search results in the file at `filepath`
     pub findings: Vec<FileFinding>,
 }
 
+/// Provides interface for the progress UI when searching.
+pub trait ProgressRenderer {
+    fn start(&mut self);
+    fn end(&mut self);
+}
+
+struct DefaultTuiProgressBar {
+    pub pb: ProgressBar,
+}
+
+impl ProgressRenderer for DefaultTuiProgressBar {
+    fn start(&mut self) {
+        self.pb.enable_steady_tick(100);
+        self.pb
+            .set_style(ProgressStyle::default_spinner().tick_strings(&[
+                "▰▱▱▱▱▱▱",
+                "▰▰▱▱▱▱▱",
+                "▰▰▰▱▱▱▱",
+                "▰▰▰▰▱▱▱",
+                "▰▰▰▰▰▱▱",
+                "▰▰▰▰▰▰▱",
+                "▰▰▰▰▰▰▰",
+            ]));
+    }
+    fn end(&mut self) {
+        self.pb.finish_with_message("Done searching");
+    }
+}
+/// Performs the `search` process but with visual feedback
+/// Uses the a default progress UI  component.
+pub fn search_with_ui(text: String, path: PathBuf) -> Vec<SearchResult> {
+    let mut renderer = DefaultTuiProgressBar {
+        pb: ProgressBar::new_spinner(),
+    };
+    renderer.start();
+    let search_results = search(text, path);
+    renderer.end();
+    search_results
+}
+
+/// Performs the `search` process
+/// Attaches a custom progress UI component, which the implements `ProgressRenderer` trait.
+pub fn search_with_custom_ui(
+    text: String,
+    path: PathBuf,
+    renderer: &mut impl ProgressRenderer,
+) -> Vec<SearchResult> {
+    renderer.start();
+    let search_results = search(text, path);
+    renderer.end();
+    search_results
+}
+
+/// Searches the `text` in the `path` provided and returns a list of `SearchResult` objects.
 pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
     let matcher = RegexMatcher::new_line_matcher(&text).unwrap();
     let mut searcher = SearcherBuilder::new()
         .binary_detection(BinaryDetection::quit(b'\x00'))
         .build();
-    let pb = ProgressBar::new_spinner();
-    pb.enable_steady_tick(100);
-    pb.set_style(ProgressStyle::default_spinner().tick_strings(&[
-        "▰▱▱▱▱▱▱",
-        "▰▰▱▱▱▱▱",
-        "▰▰▰▱▱▱▱",
-        "▰▰▰▰▱▱▱",
-        "▰▰▰▰▰▱▱",
-        "▰▰▰▰▰▰▱",
-        "▰▰▰▰▰▰▰",
-    ]));
     let mut search_result: Vec<SearchResult> = vec![];
     for file in WalkDir::new(path) {
         let dent = match file {
@@ -77,6 +119,5 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
             search_result.push(finding);
         }
     }
-    pb.finish_with_message("Done searching");
     search_result
 }
