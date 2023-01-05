@@ -1,9 +1,13 @@
+use crate::DefaultTuiProgressBar;
+use crate::ProgressRenderer;
 use grep::regex::RegexMatcher;
 use grep::searcher::BinaryDetection;
 use grep::searcher::{sinks::Lossy, SearcherBuilder};
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::ProgressBar;
 use std::path::PathBuf;
 use walkdir::WalkDir;
+
+const end_search_message: &str = "Done with searching";
 
 /// A structure holding a single finding result of the search phrases in a file.
 #[derive(Debug)]
@@ -22,59 +26,6 @@ pub struct SearchResult {
     pub filepath: String,
     /// List of the search results in the file at `filepath`
     pub findings: Vec<FileFinding>,
-}
-
-/// Provides interface for the progress UI when searching.
-pub trait ProgressRenderer {
-    fn start(&mut self);
-    fn end(&mut self);
-}
-
-struct DefaultTuiProgressBar {
-    pub pb: ProgressBar,
-}
-
-impl ProgressRenderer for DefaultTuiProgressBar {
-    fn start(&mut self) {
-        self.pb.enable_steady_tick(100);
-        self.pb
-            .set_style(ProgressStyle::default_spinner().tick_strings(&[
-                "▰▱▱▱▱▱▱",
-                "▰▰▱▱▱▱▱",
-                "▰▰▰▱▱▱▱",
-                "▰▰▰▰▱▱▱",
-                "▰▰▰▰▰▱▱",
-                "▰▰▰▰▰▰▱",
-                "▰▰▰▰▰▰▰",
-            ]));
-    }
-    fn end(&mut self) {
-        self.pb.finish_with_message("Done searching");
-    }
-}
-/// Performs the `search` process but with visual feedback
-/// Uses the a default progress UI  component.
-pub fn search_with_ui(text: String, path: PathBuf) -> Vec<SearchResult> {
-    let mut renderer = DefaultTuiProgressBar {
-        pb: ProgressBar::new_spinner(),
-    };
-    renderer.start();
-    let search_results = search(text, path);
-    renderer.end();
-    search_results
-}
-
-/// Performs the `search` process
-/// Attaches a custom progress UI component, which the implements `ProgressRenderer` trait.
-pub fn search_with_custom_ui(
-    text: String,
-    path: PathBuf,
-    renderer: &mut impl ProgressRenderer,
-) -> Vec<SearchResult> {
-    renderer.start();
-    let search_results = search(text, path);
-    renderer.end();
-    search_results
 }
 
 /// Searches the `text` in the `path` provided and returns a list of `SearchResult` objects.
@@ -120,4 +71,29 @@ pub fn search(text: String, path: PathBuf) -> Vec<SearchResult> {
         }
     }
     search_result
+}
+
+/// Performs the `search` process but with visual feedback
+/// Uses the a default progress UI  component.
+pub fn search_with_ui(text: String, path: PathBuf) -> Vec<SearchResult> {
+    let mut renderer = DefaultTuiProgressBar {
+        pb: ProgressBar::new_spinner(),
+    };
+    renderer.start();
+    let search_results = search(text, path);
+    renderer.end(String::from(end_search_message));
+    search_results
+}
+
+/// Performs the `search` process
+/// Attaches a custom progress UI component, which the implements `ProgressRenderer` trait.
+pub fn search_with_custom_ui(
+    text: String,
+    path: PathBuf,
+    renderer: &mut impl ProgressRenderer,
+) -> Vec<SearchResult> {
+    renderer.start();
+    let search_results = search(text, path);
+    renderer.end(String::from(end_search_message));
+    search_results
 }
