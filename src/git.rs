@@ -2,10 +2,10 @@ use crate::DefaultTuiProgressBar;
 use crate::ProgressRenderer;
 use crate::SearchResult;
 use git2::{ErrorCode, Repository};
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::ProgressBar;
 use std::path::Path;
 
-const end_blame_message: &str = "Done with blaming";
+const END_BLAME_MESSAGE: &str = "Done with blaming";
 
 /// Holds results after git blame process is done
 #[derive(Clone)]
@@ -95,7 +95,7 @@ pub fn blame_with_ui(
     };
     renderer.start();
     let blame_results = blame(repo, user_to_blame, files);
-    renderer.end(String::from(end_blame_message));
+    renderer.end(String::from(END_BLAME_MESSAGE));
     blame_results
 }
 
@@ -109,6 +109,6 @@ pub fn blame_with_custom_ui(
 ) -> Vec<BlameFileResult> {
     renderer.start();
     let blame_results = blame(repo, user_to_blame, files);
-    renderer.end(String::from(end_blame_message));
+    renderer.end(String::from(END_BLAME_MESSAGE));
     blame_results
 }

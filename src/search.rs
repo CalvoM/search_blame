@@ -7,7 +7,7 @@ use indicatif::ProgressBar;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-const end_search_message: &str = "Done with searching";
+const END_SEARCH_MESSAGE: &str = "Done with searching";
 
 /// A structure holding a single finding result of the search phrases in a file.
 #[derive(Debug)]
@@ -81,7 +81,7 @@ pub fn search_with_ui(text: String, path: PathBuf) -> Vec<SearchResult> {
     };
     renderer.start();
     let search_results = search(text, path);
-    renderer.end(String::from(end_search_message));
+    renderer.end(String::from(END_SEARCH_MESSAGE));
     search_results
 }
 
@@ -94,6 +94,6 @@ pub fn search_with_custom_ui(
 ) -> Vec<SearchResult> {
     renderer.start();
     let search_results = search(text, path);
-    renderer.end(String::from(end_search_message));
+    renderer.end(String::from(END_SEARCH_MESSAGE));
     search_results
 }
